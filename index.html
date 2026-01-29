@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Facebook Auto Reply</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>📩 Facebook Auto Reply Panel</h2>
+    
+    <input type="text" id="uid" placeholder="Enter Facebook UID" />
+    <textarea id="message" placeholder="Enter your message here"></textarea>
+    
+    <div class="buttons">
+      <button onclick="sendMessage()">Send</button>
+      <button onclick="stopSystem()">⛔ Stop</button>
+      <button onclick="startSystem()">▶ Start</button>
+    </div>
+
+    <div class="log-box" id="logBox">
+      <h3>📜 Live Logs</h3>
+      <div id="logs"></div>
+    </div>
+  </div>
+
+  <script>
+    async function sendMessage() {
+      const uid = document.getElementById("uid").value;
+      const message = document.getElementById("message").value;
+
+      const response = await fetch("/send", {
+        method: "POST",
+        body: new URLSearchParams({ uid, message }),
+      });
+
+      const result = await response.json();
+      if (result.log) updateLogs();
+    }
+
+    async function stopSystem() {
+      await fetch("/stop", { method: "POST" });
+      updateLogs();
+    }
+
+    async function startSystem() {
+      await fetch("/start", { method: "POST" });
+      updateLogs();
+    }
+
+    async function updateLogs() {
+      const response = await fetch("/logs");
+      const data = await response.json();
+
+      const logsDiv = document.getElementById("logs");
+      logsDiv.innerHTML = data.logs.map(log => `<div>${log}</div>`).join('');
+    }
+
+    setInterval(updateLogs, 3000); // Refresh logs every 3s
+  </script>
+</body>
+</html>
